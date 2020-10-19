@@ -38,7 +38,7 @@ Each test is separated by sections (commented in the test file)
 
     "Initializing Server Running in Background" - Runs the server to run tests against the server
 
-    "Connecting working client and get file"       - Tests a valid certificate with the server and fetches the file from the server
+    "Connecting working client and get file"       - Tests a valid certificate with the server and fetches the file from the server. Should return "TEXT 1 TEST 123"
     "Connecting client with wrong password"        - Tests a valid certificate with a wrong password. Should not load private key file
     "Connecting client with no certificate"        - Tests connecting a client with no certificate. Should return an error "certificate required"
     "Connecting client with expired certificate"   - Tests an expired certificate. Should return error 10
