@@ -158,11 +158,11 @@ else
 fi
 #######################
 printSection "Connecting client with self signed certificate in certificate chain"
-OUTPUT=$(openssl s_client -pass pass:$PASS -connect localhost:44330 -key ~/ca/intermediate/private/127.0.0.1.key.pem -verify_return_error -noservername -ign_eof -CAfile ~/ca/intermediate/certs/127.0.0.1.cert.pem -cert ~/ca/intermediate/certs/127.0.0.1.cert.pem 2>&1)
+OUTPUT=$(openssl s_client -pass pass:$PASS -quiet -connect localhost:44330 -key ~/ca/intermediate/private/test@test.com.key.pem -verify_return_error -noservername -ign_eof -CAfile ~/ca/intermediate/certs/127.0.0.1.cert.pem -cert ~/ca/intermediate/certs/test@test.com.cert.pem 2>&1)
 SOUTPUT=$(cat server.out)
-if [[ ($SOUTPUT == *"verify error:num=19:self signed certificate in certificate chain"*) ]]; then
+if [[ ($OUTPUT == *"verify error:num=19:self signed certificate in certificate chain"*)]]; then
   printf "Server Serving: "
-  tail -2  server.out | head -1
+  echo $OUTPUT | tail -2 | head -1
   printf "${GREEN}SUCCESS: ACCEPTED CLIENT AND RETRIEVED FILE\n${NC}"
 else
   printf "${RED}FAILURE: CLIENT WAS NOT ACCEPTED AND FILE WAS NOT ACCESSED\n${NC}"
