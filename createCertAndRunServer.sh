@@ -11,7 +11,7 @@ fuser -k 44330/tcp &>/dev/null
 printSection "Creating Certificates"
 cleanup
 ./clean.sh
-./createCa.sh test
+./createCerts.sh test
 cd ./server
 openssl s_server -pass pass:test -key ~/ca/intermediate/private/127.0.0.1.key.pem \
  -Verify 1 -cert ~/ca/intermediate/certs/127.0.0.1.cert.pem \
