@@ -142,4 +142,16 @@ else
   printf "${RED}FAILURE: SHOULD REJECT CLIENT WITH CERTIFICATE WITH UNSUPPORTED PURPOSE\n${NC}"
 fi
 
+#######################
+printSection "Key Value Mismatch"
+OUTPUT=$(echo "GET /text1.txt HTTP/1.1" | openssl s_client -pass pass:$PASS -quiet -connect localhost:44330 -key ~/ca/intermediate/private/test@test.com.key.pem -verify_return_error -noservername -ign_eof -CAfile ~/ca/certs/ca.cert.pem -cert ~/ca/intermediate/certs/expired.cert.pem 2>&1)
+SOUTPUT=$(cat server.out)
+if [[ ($OUTPUT == *"key values mismatch"*) && ($SOUTPUT == *"verify error:num=26:unsupported certificate purpose"*) ]]; then
+  printf "Server Serving: "
+  tail -2  server.out | head -1
+  printf "${GREEN}SUCCESS: ACCEPTED CLIENT AND RETRIEVED FILE\n${NC}"
+else
+  printf "${RED}FAILURE: CLIENT WAS NOT ACCEPTED AND FILE WAS NOT ACCESSED\n${NC}"
+fi
+
 trap cleanup EXIT
