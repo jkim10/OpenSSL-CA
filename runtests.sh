@@ -158,8 +158,7 @@ else
 fi
 #######################
 printSection "Connecting client with self signed certificate in certificate chain"
-OUTPUT=$(openssl s_client -pass pass:$PASS -connect localhost:44330 -key ~/ca/intermediate/private/127.0.0.1.key.pem -verify_return_error -noservername -ign_eof -CAfile ~/ca/intermediate/certs/127.0.0.1.cert.pem -cert ~/ca/intermedi
-ate/certs/127.0.0.1.cert.pem 2>&1)
+OUTPUT=$(openssl s_client -pass pass:$PASS -connect localhost:44330 -key ~/ca/intermediate/private/127.0.0.1.key.pem -verify_return_error -noservername -ign_eof -CAfile ~/ca/intermediate/certs/127.0.0.1.cert.pem -cert ~/ca/intermediate/certs/127.0.0.1.cert.pem 2>&1)
 SOUTPUT=$(cat server.out)
 echo $OUTPUT
 read -p "TEST"
