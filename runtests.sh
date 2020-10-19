@@ -1,11 +1,5 @@
 #!/bin/bash
-
-if [ "$#" -ne 1 ]
-then
-  echo "Must supply password"
-  exit 1
-fi
-PASS=$1
+PASS=test
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -18,7 +12,7 @@ fuser -k 44330/tcp &>/dev/null
 printSection "Creating Certificates"
 cleanup
 ./clean.sh
-./createCa.sh $PASS
+./createCerts.sh $PASS
 
 cd ./server
 function cleanup {
@@ -30,8 +24,17 @@ function cleanup {
 #########################
 #    VERIFYING CERTS    #
 #########################
-printSection "Valid Certificate"
+printSection "Valid Server Certificate"
 RES=$(openssl verify -CAfile ~/ca/intermediate/certs/ca-chain.cert.pem ~/ca/intermediate/certs/127.0.0.1.cert.pem)
+echo $RES
+if [[ ($RES == *"OK"*) ]]; then
+  printf "${GREEN}SUCCESS: ACCEPTED CERTIFICATE\n${NC}"
+else
+  printf "${RED}FAILURE: CLIENT WAS NOT ACCEPTED\n${NC}"
+fi
+########################
+printSection "Valid Client Certificate"
+RES=$(openssl verify -CAfile ~/ca/intermediate/certs/ca-chain.cert.pem ~/ca/intermediate/certs/test@test.com.cert.pem)
 echo $RES
 if [[ ($RES == *"OK"*) ]]; then
   printf "${GREEN}SUCCESS: ACCEPTED CERTIFICATE\n${NC}"
@@ -143,10 +146,24 @@ else
 fi
 
 #######################
-printSection "Key Value Mismatch"
+printSection "Connecting client with Key Value Mismatch"
 OUTPUT=$(echo "GET /text1.txt HTTP/1.1" | openssl s_client -pass pass:$PASS -quiet -connect localhost:44330 -key ~/ca/intermediate/private/test@test.com.key.pem -verify_return_error -noservername -ign_eof -CAfile ~/ca/certs/ca.cert.pem -cert ~/ca/intermediate/certs/expired.cert.pem 2>&1)
 SOUTPUT=$(cat server.out)
 if [[ ($OUTPUT == *"key values mismatch"*) && ($SOUTPUT == *"verify error:num=26:unsupported certificate purpose"*) ]]; then
+  printf "Server Serving: "
+  tail -2  server.out | head -1
+  printf "${GREEN}SUCCESS: ACCEPTED CLIENT AND RETRIEVED FILE\n${NC}"
+else
+  printf "${RED}FAILURE: CLIENT WAS NOT ACCEPTED AND FILE WAS NOT ACCESSED\n${NC}"
+fi
+#######################
+printSection "Connecting client with self signed certificate in certificate chain"
+OUTPUT=$(openssl s_client -pass pass:$PASS -connect localhost:44330 -key ~/ca/intermediate/private/127.0.0.1.key.pem -verify_return_error -noservername -ign_eof -CAfile ~/ca/intermediate/certs/127.0.0.1.cert.pem -cert ~/ca/intermedi
+ate/certs/127.0.0.1.cert.pem 2>&1)
+SOUTPUT=$(cat server.out)
+echo $OUTPUT
+read -p "TEST"
+if [[ ($SOUTPUT == *"verify error:num=19:self signed certificate in certificate chain"*) ]]; then
   printf "Server Serving: "
   tail -2  server.out | head -1
   printf "${GREEN}SUCCESS: ACCEPTED CLIENT AND RETRIEVED FILE\n${NC}"

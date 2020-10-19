@@ -82,6 +82,20 @@ openssl ca -batch -passin pass:$PASS -config intermediate/openssl.cnf -extension
 
 chmod 444 intermediate/certs/signing.cert.pem
 
+#Creating Sign Cert
+openssl genrsa -aes256 -passout pass:$PASS -out intermediate/private/encrypt.key.pem 2048
+
+chmod 400 intermediate/private/encrypt.key.pem
+
+openssl req -passin pass:$PASS -config intermediate/openssl.cnf -key intermediate/private/encrypt.key.pem\
+    -subj "/CN=encrypt" -new -sha256 -out intermediate/csr/encrypt.csr.pem
+
+openssl ca -batch -passin pass:$PASS -config intermediate/openssl.cnf -extensions encrypt_cert -days 3650\
+    -notext -md sha256 -in intermediate/csr/encrypt.csr.pem\
+    -keyfile $HOME/ca/private/ca.key.pem -cert $HOME/ca/certs/ca.cert.pem -outdir ~/ca/newcerts -out intermediate/certs/encrypt.cert.pem
+
+chmod 444 intermediate/certs/encrypt.cert.pem
+
 #Creating Expired Cert for testing
 
 openssl genrsa -aes256 -passout pass:$PASS -out intermediate/private/expired.key.pem 2048
@@ -110,7 +124,3 @@ openssl ca -batch -passin pass:$PASS -config intermediate/openssl.cnf -extension
     -keyfile $HOME/ca/private/ca.key.pem -cert $HOME/ca/certs/ca.cert.pem -outdir ~/ca/newcerts -out intermediate/certs/invalid.cert.pem
 
 chmod 444 intermediate/certs/invalid.cert.pem
-
-#Creating dummy cert and key
-touch intermediate/certs/wrongIssuer.cert.pem
-touch intermediate/private/wrongIssuer.key.pem
